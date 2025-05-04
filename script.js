@@ -219,4 +219,8 @@ function displayLeaderboard() {
   });
 }
 
-document.getElementById("backBtn").addEventListener("click", backToStart);
+function backToStart() {
+    document.getElementById("leaderboard").style.display = "none";
+    document.getElementById("start-screen").style.display = "block";
+  }
+window.backToStart = backToStart; // 讓 HTML onclick 找得到
