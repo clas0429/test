@@ -198,21 +198,30 @@ function collision(x, y, arr) {
 
 function saveScore() {
     const userRef = ref(database, 'leaderboard/' + playerName.trim());
+  
     get(userRef).then(snapshot => {
       const oldScore = snapshot.exists() ? snapshot.val().score : null;
   
       if (oldScore === null || score > oldScore) {
-        set(userRef, { name: playerName.trim(), score })
-          .then(() => {
-            console.log("✅ 分數已寫入/更新");
-            displayLeaderboard(); // ✅ 寫入後再顯示
-          });
+        // ✅ 新分數較高或首次儲存 → 執行寫入並等待完成
+        set(userRef, { name: playerName.trim(), score }).then(() => {
+          console.log("✅ 分數已更新");
+          displayLeaderboard(); // 等寫入完成後再呼叫
+        }).catch((error) => {
+          console.error("❌ 寫入錯誤：", error);
+          alert("寫入資料失敗，請稍後再試！");
+        });
       } else {
+        // ✅ 分數沒更新，也仍然顯示排行榜
         console.log("⚠️ 舊分數較高，未更新");
-        displayLeaderboard(); // ✅ 雖未更新，也照樣顯示
+        displayLeaderboard();
       }
+    }).catch((error) => {
+      console.error("❌ 讀取舊分數失敗：", error);
+      alert("資料讀取失敗");
     });
   }
+  
   
 
 function displayLeaderboard() {
