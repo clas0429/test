@@ -177,14 +177,14 @@ function draw() {
   ) {
     clearInterval(gameInterval);
     alert(`遊戲結束！你的分數是：${score}`);
-    saveScore();
+    saveScore(playerName, score); // ✅ 傳入 name 和 score
     return;
   }
 
   if (collision(headX, headY, computerSnake)) {
     clearInterval(gameInterval);
     alert(`你被電腦撞到了！你的分數是：${score}`);
-    saveScore();
+    saveScore(playerName, score); // ✅ 傳入 name 和 score
     return;
   }
 
@@ -196,29 +196,21 @@ function collision(x, y, arr) {
   return arr.slice(1).some(s => s.x === x && s.y === y);
 }
 
-function saveScore() {
-    const userRef = ref(database, 'leaderboard/' + playerName.trim());
+function saveScore(name, score) {
+    const userRef = ref(database, 'leaderboard/' + name.trim());
   
     get(userRef).then(snapshot => {
       const oldScore = snapshot.exists() ? snapshot.val().score : null;
   
       if (oldScore === null || score > oldScore) {
-        // ✅ 新分數較高或首次儲存 → 執行寫入並等待完成
-        set(userRef, { name: playerName.trim(), score }).then(() => {
+        set(userRef, { name: name.trim(), score }).then(() => {
           console.log("✅ 分數已更新");
-          displayLeaderboard(); // 等寫入完成後再呼叫
-        }).catch((error) => {
-          console.error("❌ 寫入錯誤：", error);
-          alert("寫入資料失敗，請稍後再試！");
+          displayLeaderboard(); // 寫入成功後再顯示
         });
       } else {
-        // ✅ 分數沒更新，也仍然顯示排行榜
         console.log("⚠️ 舊分數較高，未更新");
-        displayLeaderboard();
+        displayLeaderboard(); // 即使未更新也照樣顯示
       }
-    }).catch((error) => {
-      console.error("❌ 讀取舊分數失敗：", error);
-      alert("資料讀取失敗");
     });
   }
   
@@ -226,17 +218,18 @@ function saveScore() {
 
 function displayLeaderboard() {
   getLeaderboardFromFirebase().then(data => {
-    const list = document.getElementById("leaderboard-list");
-    list.innerHTML = "";
+    const leaderboardList = document.getElementById("leaderboard-list");
+    leaderboardList.innerHTML = "";
     data.forEach(entry => {
       const li = document.createElement("li");
       li.textContent = `${entry.name}: ${entry.score}`;
-      list.appendChild(li);
+      leaderboardList.appendChild(li);
     });
     document.getElementById("leaderboard").style.display = "block";
     document.getElementById("game-container").style.display = "none";
   });
 }
+
 
 function backToStart() {
   document.getElementById("leaderboard").style.display = "none";
