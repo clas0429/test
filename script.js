@@ -21,29 +21,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
-// ✅ 分數寫入邏輯（若新分數更高才寫入）
-function saveScoreToFirebase(name, score) {
-  if (!name || typeof name !== 'string' || name.trim() === '') {
-    console.warn("❗ 無效的名稱，已略過儲存。");
-    return;
-  }
-  if (typeof score !== 'number' || isNaN(score)) {
-    console.warn("❗ 分數錯誤，已略過儲存。");
-    return;
-  }
 
-  const userRef = ref(database, 'leaderboard/' + name.trim());
-  get(userRef).then(snapshot => {
-    const oldScore = snapshot.exists() ? snapshot.val().score : null;
-
-    if (oldScore === null || score > oldScore) {
-      set(userRef, { name: name.trim(), score });
-      console.log("✅ 分數已寫入/更新");
-    } else {
-      console.log("⚠️ 舊分數較高，未更新");
-    }
-  });
-}
 
 // ✅ 取得排行榜（前 10 名）
 async function getLeaderboardFromFirebase() {
@@ -219,9 +197,23 @@ function collision(x, y, arr) {
 }
 
 function saveScore() {
-  saveScoreToFirebase(playerName, score);
-  displayLeaderboard();
-}
+    const userRef = ref(database, 'leaderboard/' + playerName.trim());
+    get(userRef).then(snapshot => {
+      const oldScore = snapshot.exists() ? snapshot.val().score : null;
+  
+      if (oldScore === null || score > oldScore) {
+        set(userRef, { name: playerName.trim(), score })
+          .then(() => {
+            console.log("✅ 分數已寫入/更新");
+            displayLeaderboard(); // ✅ 寫入後再顯示
+          });
+      } else {
+        console.log("⚠️ 舊分數較高，未更新");
+        displayLeaderboard(); // ✅ 雖未更新，也照樣顯示
+      }
+    });
+  }
+  
 
 function displayLeaderboard() {
   getLeaderboardFromFirebase().then(data => {
