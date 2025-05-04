@@ -219,7 +219,4 @@ function displayLeaderboard() {
   });
 }
 
-function backToStart() {
-  document.getElementById("leaderboard").style.display = "none";
-  document.getElementById("start-screen").style.display = "block";
-}
+document.getElementById("backBtn").addEventListener("click", backToStart);
