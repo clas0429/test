@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>貪吃蛇遊戲</title>
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="script.js"></script>
+</head>
+
+<body>
+
+
+    <div id="start-screen">
+        <h1>貪吃蛇遊戲</h1>
+        <input type="text" id="playerName" placeholder="輸入你的名字" oninput="checkInput()" />
+        <button id="startBtn" disabled>開始遊戲</button>
+        
+        <script>
+        function checkInput() {
+          const input = document.getElementById("playerName").value.trim();
+          document.getElementById("startBtn").disabled = input === "";
+        }
+        </script>
+        
+    </div>
+
+    <div id="game-container" style="display: none;">
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <div id="score">分數：0</div>
+        <button id="pauseBtn" onclick="togglePause()">暫停</button>
+        <button id="restartBtn" onclick="startGame()" style="display: none;">重新開始</button>
+    </div>
+
+    <div id="leaderboard" style="display: none;">
+        <h2>排行榜</h2>
+        <ul id="leaderboard-list"></ul>
+        <button onclick="backToStart()">返回開始畫面</button>
+    </div>
+
+
+
+</body>
+
+</html>
