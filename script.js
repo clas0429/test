@@ -1,7 +1,13 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-import { getDatabase, ref, push, get, child } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+import {
+  getDatabase,
+  ref,
+  set,
+  get,
+  child
+} from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
 
-// Firebase 設定
+// 🔧 Firebase 設定
 const firebaseConfig = {
   apiKey: "AIzaSyASsEV44jIDHdguu3GdpTeEE-r8tSRGAT0",
   authDomain: "test-b2b60.firebaseapp.com",
@@ -15,6 +21,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
+// ✅ 分數寫入邏輯（若新分數更高才寫入）
 function saveScoreToFirebase(name, score) {
   if (!name || typeof name !== 'string' || name.trim() === '') {
     console.warn("❗ 無效的名稱，已略過儲存。");
@@ -24,10 +31,21 @@ function saveScoreToFirebase(name, score) {
     console.warn("❗ 分數錯誤，已略過儲存。");
     return;
   }
-  const scoresRef = ref(database, 'leaderboard');
-  push(scoresRef, { name: name.trim(), score });
+
+  const userRef = ref(database, 'leaderboard/' + name.trim());
+  get(userRef).then(snapshot => {
+    const oldScore = snapshot.exists() ? snapshot.val().score : null;
+
+    if (oldScore === null || score > oldScore) {
+      set(userRef, { name: name.trim(), score });
+      console.log("✅ 分數已寫入/更新");
+    } else {
+      console.log("⚠️ 舊分數較高，未更新");
+    }
+  });
 }
 
+// ✅ 取得排行榜（前 10 名）
 async function getLeaderboardFromFirebase() {
   const snapshot = await get(child(ref(database), 'leaderboard'));
   if (snapshot.exists()) {
@@ -38,7 +56,7 @@ async function getLeaderboardFromFirebase() {
   }
 }
 
-// -------------------- 以下為遊戲邏輯 --------------------
+// -------------------- 遊戲邏輯 --------------------
 
 let canvas, ctx;
 let box = 20;
@@ -220,7 +238,8 @@ function displayLeaderboard() {
 }
 
 function backToStart() {
-    document.getElementById("leaderboard").style.display = "none";
-    document.getElementById("start-screen").style.display = "block";
-  }
-window.backToStart = backToStart; // 讓 HTML onclick 找得到
+  document.getElementById("leaderboard").style.display = "none";
+  document.getElementById("start-screen").style.display = "block";
+}
+window.backToStart = backToStart; // 讓 onclick 能呼叫
+
