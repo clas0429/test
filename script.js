@@ -9,13 +9,13 @@ import {
 
 // 🔧 Firebase 設定
 const firebaseConfig = {
-  apiKey: "AIzaSyASsEV44jIDHdguu3GdpTeEE-r8tSRGAT0",
-  authDomain: "test-b2b60.firebaseapp.com",
-  databaseURL: "https://test-b2b60-default-rtdb.firebaseio.com",
-  projectId: "test-b2b60",
-  storageBucket: "test-b2b60.firebasestorage.app",
-  messagingSenderId: "969704209980",
-  appId: "1:969704209980:web:bac9ffc5b5ac66892c4d39"
+    apiKey: "AIzaSyA8bMCZxRsQHA02HYYf054Ov0FqcDIE15A",
+    authDomain: "snake-c1131.firebaseapp.com",
+    databaseURL: "https://snake-c1131-default-rtdb.firebaseio.com",
+    projectId: "snake-c1131",
+    storageBucket: "snake-c1131.firebasestorage.app",
+    messagingSenderId: "114037986485",
+    appId: "1:114037986485:web:2807647fb898c51cec1afc"
 };
 
 const app = initializeApp(firebaseConfig);
