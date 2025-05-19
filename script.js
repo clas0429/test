@@ -198,22 +198,21 @@ function collision(x, y, arr) {
 
 function saveScore(name, score) {
     const userRef = ref(database, 'leaderboard/' + name.trim());
-  
+
     get(userRef).then(snapshot => {
-      const oldScore = snapshot.exists() ? snapshot.val().score : null;
-  
-      if (oldScore === null || score > oldScore) {
-        set(userRef, { name: name.trim(), score }).then(() => {
-          console.log("✅ 分數已更新");
-          displayLeaderboard(); // 寫入成功後再顯示
-        });
-      } else {
-        console.log("⚠️ 舊分數較高，未更新");
-        displayLeaderboard(); // 即使未更新也照樣顯示
-      }
+        const oldScore = snapshot.exists() ? snapshot.val().score : 0; // 如果不存在，舊分數設為 0
+
+        if (score > oldScore) { // 只有當新分數大於舊分數時才更新
+            set(userRef, { name: name.trim(), score }).then(() => {
+                console.log("✅ 分數已更新");
+                displayLeaderboard();
+            });
+        } else {
+            console.log("⚠️ 新分數沒有比較高，不更新");
+            displayLeaderboard(); // 顯示排行榜
+        }
     });
-  }
-  
+}
   
 
 function displayLeaderboard() {
