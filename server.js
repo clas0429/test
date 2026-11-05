@@ -1,18 +1,28 @@
 "use strict";
 
 // Teaching CRUD example. No authentication: use fictional data only.
-// Node 24 provides node:sqlite; the builder must supply a reviewed immutable
-// Node base image and Runtime still overrides the container user/sandbox.
+// MariaDB connector is supplied by the reviewed teaching runtime base.
 const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
-const {DatabaseSync} = require("node:sqlite");
+const mariadb = require("mariadb");
 
 const ROOT = __dirname;
-const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(ROOT, ".local"));
-fs.mkdirSync(DATA_DIR, {recursive: true});
-const database = new DatabaseSync(path.join(DATA_DIR, "todos.sqlite3"));
-database.exec("CREATE TABLE IF NOT EXISTS todos (id INTEGER PRIMARY KEY, title TEXT NOT NULL, done INTEGER NOT NULL DEFAULT 0)");
+const pool = mariadb.createPool({
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT || 3307),
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  connectionLimit: 2,
+  connectTimeout: 3000,
+  acquireTimeout: 5000,
+  bigIntAsNumber: true,
+  insertIdAsNumber: true,
+});
+const ready = pool.query("CREATE TABLE IF NOT EXISTS todos (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, title VARCHAR(200) NOT NULL, done TINYINT NOT NULL DEFAULT 0)");
+// Report initialization failures through /healthz without logging credentials.
+ready.catch(() => {});
 
 const CSP = "default-src 'none'; script-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'";
 
@@ -28,8 +38,8 @@ function respond(response, status, body, contentType = "application/json; charse
   response.end(raw);
 }
 
-function todoRows() {
-  return database.prepare("SELECT id,title,done FROM todos ORDER BY id DESC LIMIT 100").all();
+async function todoRows() {
+  return pool.query("SELECT id,title,done FROM todos ORDER BY id DESC LIMIT 100");
 }
 
 function todoId(pathname) {
@@ -73,7 +83,7 @@ async function mutate(request, response, url) {
   }
   const id = todoId(url.pathname);
   if (request.method === "DELETE" && id !== null) {
-    database.prepare("DELETE FROM todos WHERE id=?").run(id);
+    await pool.query("DELETE FROM todos WHERE id=?", [id]);
     respond(response, 200, {deleted: true});
     return;
   }
@@ -90,19 +100,19 @@ async function mutate(request, response, url) {
         || body.title.trim().length < 1 || body.title.trim().length > 200) {
       throw Object.assign(new Error("invalid_payload"), {status: 422});
     }
-    if (database.prepare("SELECT count(*) AS count FROM todos").get().count >= 100) {
+    if (Number((await pool.query("SELECT count(*) AS count FROM todos"))[0].count) >= 100) {
       respond(response, 409, {error: "demo_limit_100_items"});
       return;
     }
-    const result = database.prepare("INSERT INTO todos(title) VALUES(?)").run(body.title.trim());
-    respond(response, 201, {id: Number(result.lastInsertRowid)});
+    const result = await pool.query("INSERT INTO todos(title) VALUES(?)", [body.title.trim()]);
+    respond(response, 201, {id: Number(result.insertId)});
     return;
   }
   if (request.method === "PATCH" && id !== null) {
     if (Object.keys(body).length !== 1 || typeof body.done !== "boolean") {
       throw Object.assign(new Error("invalid_payload"), {status: 422});
     }
-    database.prepare("UPDATE todos SET done=? WHERE id=?").run(body.done ? 1 : 0, id);
+    await pool.query("UPDATE todos SET done=? WHERE id=?", [body.done ? 1 : 0, id]);
     respond(response, 200, {updated: true});
     return;
   }
@@ -111,6 +121,7 @@ async function mutate(request, response, url) {
 
 const server = http.createServer(async (request, response) => {
   try {
+    await ready;
     const url = new URL(request.url || "/", "http://runtime.local");
     if (request.method === "GET" && (url.pathname === "/" || url.pathname === "/app.js")) {
       const file = path.join(ROOT, url.pathname === "/" ? "index.html" : "app.js");
@@ -118,12 +129,12 @@ const server = http.createServer(async (request, response) => {
       return;
     }
     if (request.method === "GET" && url.pathname === "/healthz") {
-      database.prepare("SELECT 1").get();
+      await pool.query("SELECT 1");
       respond(response, 200, {status: "ok"});
       return;
     }
     if (request.method === "GET" && url.pathname === "/api/todos") {
-      respond(response, 200, {items: todoRows()});
+      respond(response, 200, {items: await todoRows()});
       return;
     }
     if (["POST", "PATCH", "DELETE"].includes(request.method)) {
