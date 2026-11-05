@@ -1,0 +1,1 @@
+{"name": "operator-npm-fixture", "version": "1.0.0", "dependencies": {"cookie": "1.0.2"}, "scripts": {"preinstall": "touch npm-hook-ran"}}
