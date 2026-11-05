@@ -1,7 +1,0 @@
-.local/
-node_modules/
-.env
-.env.*
-*.sqlite
-*.sqlite-*
-.DS_Store
