@@ -46,6 +46,27 @@
       </footer>
     </section>
 
+    <section class="board bmi-board" aria-labelledby="bmi-title">
+      <div class="board-top">
+        <div>
+          <p class="date-label">健康小工具</p>
+          <h2 id="bmi-title">BMI 身體質量指數</h2>
+        </div>
+      </div>
+      <form id="bmi-form" class="bmi-form">
+        <div class="bmi-field">
+          <label for="height">身高</label>
+          <div class="bmi-input-wrap"><input id="height" name="height" type="number" min="50" max="250" step="0.1" placeholder="例如 165" required><span>公分</span></div>
+        </div>
+        <div class="bmi-field">
+          <label for="weight">體重</label>
+          <div class="bmi-input-wrap"><input id="weight" name="weight" type="number" min="10" max="500" step="0.1" placeholder="例如 55" required><span>公斤</span></div>
+        </div>
+        <button type="submit" class="add-button">計算 BMI</button>
+      </form>
+      <p id="bmi-result" class="bmi-result" role="status" aria-live="polite">輸入身高與體重來計算</p>
+      <p class="bmi-note">BMI 僅供一般參考，不能取代醫療評估；兒童、青少年及孕婦的判讀方式不同。</p>
+    </section>
     <p class="privacy-note"><span aria-hidden="true">▣</span> 資料只保存在這個瀏覽器，不會上傳到伺服器。</p>
   </main>
 </body>
