@@ -7,14 +7,27 @@
   <meta name="description" content="簡單、可在瀏覽器本機保存的待辦清單。">
   <title>待辦清單｜我的小日常</title>
   <link rel="stylesheet" href="./styles.css">
-  <script src="./app.js" defer></script>
+  <script type="module" src="./app.js"></script>
 </head>
 <body>
   <main class="shell">
     <header class="hero">
       <p class="eyebrow"><span class="sparkle" aria-hidden="true">✳</span> MY LITTLE DAY</p>
-      <h1>把今天，<span>慢慢完成。</span></h1>
-      <p class="intro">不用一次做到全部。先記下來，再一步一步來。</p>
+      <div class="hero-heading">
+        <div>
+          <h1>把今天，<span>慢慢完成。</span></h1>
+          <p class="intro">不用一次做到全部。先記下來，再一步一步來。</p>
+        </div>
+        <div class="account-panel" aria-live="polite">
+          <button id="sign-in" class="google-button" type="button">
+            <span class="google-mark" aria-hidden="true">G</span>使用 Google 登入
+          </button>
+          <div id="account-info" class="account-info" hidden>
+            <span id="account-name" class="account-name"></span>
+            <button id="sign-out" class="sign-out-button" type="button">登出</button>
+          </div>
+        </div>
+      </div>
     </header>
 
     <section class="board" aria-labelledby="list-title">
@@ -67,7 +80,7 @@
       <p id="bmi-result" class="bmi-result" role="status" aria-live="polite">輸入身高與體重來計算</p>
       <p class="bmi-note">BMI 僅供一般參考，不能取代醫療評估；兒童、青少年及孕婦的判讀方式不同。</p>
     </section>
-    <p class="privacy-note"><span aria-hidden="true">▣</span> 資料只保存在這個瀏覽器，不會上傳到伺服器。</p>
+    <p class="privacy-note"><span aria-hidden="true">▣</span> 登入後清單會同步至 Firebase；未登入時只保存在這個瀏覽器。</p>
   </main>
 </body>
 </html>
