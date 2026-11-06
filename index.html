@@ -81,15 +81,24 @@ if (firebaseConfigured) {
   });
   onAuthStateChanged(firebaseAuth, user => {
     googleSignIn.disabled = false;
+    authGate.hidden = true;
+    appRoot.hidden = !user;
     if (user) {
-      authGate.hidden = true;
-      appRoot.hidden = false;
       document.getElementById("authUser").hidden = false;
       document.getElementById("authName").textContent = user.displayName || user.email || "已登入";
       const avatar = document.getElementById("authAvatar");
       if (user.photoURL) { avatar.src = user.photoURL; avatar.hidden = false; }
       else avatar.hidden = true;
-    } else showSignedOut();
+    } else {
+      showSignedOut();
+    }
+  }, error => {
+    authGate.hidden = false;
+    appRoot.hidden = true;
+    authMessage.textContent = "無法讀取登入狀態，請重新登入。";
+    authError.textContent = `Firebase 驗證錯誤（${error.code || "未知錯誤"}）。`;
+    googleSignIn.hidden = false;
+    googleSignIn.disabled = false;
   });
   document.getElementById("signOut").addEventListener("click", () => firebaseSignOut(firebaseAuth));
 } else {
