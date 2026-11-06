@@ -29,6 +29,7 @@ const authMessage = document.getElementById("authMessage");
 const authError = document.getElementById("authError");
 const googleSignIn = document.getElementById("googleSignIn");
 const appRoot = document.querySelector(".app");
+appRoot.hidden = true;
 function showSignedOut(message = "登入後即可查看你的行程與任務。") {
   appRoot.hidden = true;
   authGate.hidden = false;
