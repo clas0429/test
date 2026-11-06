@@ -29,7 +29,6 @@ const authMessage = document.getElementById("authMessage");
 const authError = document.getElementById("authError");
 const googleSignIn = document.getElementById("googleSignIn");
 const appRoot = document.querySelector(".app");
-appRoot.hidden = true;
 function showSignedOut(message = "登入後即可查看你的行程與任務。") {
   appRoot.hidden = true;
   authGate.hidden = false;
@@ -59,8 +58,6 @@ if (firebaseConfigured) {
       const result = await signInWithPopup(firebaseAuth, googleProvider);
       if (result?.user) {
         authMessage.textContent = "登入成功，正在開啟行程…";
-        authGate.hidden = true;
-        appRoot.hidden = false;
       }
     } catch (error) {
       const fallbackErrors = ["auth/popup-blocked", "auth/popup-closed-by-user", "auth/cancelled-popup-request"];
