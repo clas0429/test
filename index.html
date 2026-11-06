@@ -50,7 +50,8 @@ if (firebaseConfigured) {
       : `Google 登入未完成（${error.code || "未知錯誤"}）。請重新登入。`;
     googleSignIn.hidden = false;
     googleSignIn.disabled = false;
-  });  googleSignIn.addEventListener("click", async () => {
+  });
+  googleSignIn.addEventListener("click", async () => {
     googleSignIn.disabled = true;
     authError.textContent = "";
     authMessage.textContent = "正在開啟 Google 登入視窗…";
