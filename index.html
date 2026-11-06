@@ -29,7 +29,6 @@ const authMessage = document.getElementById("authMessage");
 const authError = document.getElementById("authError");
 const googleSignIn = document.getElementById("googleSignIn");
 const appRoot = document.querySelector(".app");
-appRoot.hidden = true;
 function showSignedOut(message = "登入後即可查看你的行程與任務。") {
   appRoot.hidden = true;
   authGate.hidden = false;
@@ -43,13 +42,7 @@ if (firebaseConfigured) {
   firebaseAuth = getAuth(firebaseApp);
   const googleProvider = new GoogleAuthProvider();
   googleProvider.setCustomParameters({ prompt: "select_account" });
-  getRedirectResult(firebaseAuth).then(result => {
-    if (result?.user) {
-      authMessage.textContent = "登入成功，正在開啟行程…";
-      authGate.hidden = true;
-      appRoot.hidden = false;
-    }
-  }).catch(error => {
+  getRedirectResult(firebaseAuth).catch(error => {
     authMessage.textContent = "登入狀態確認失敗，請重新登入。";
     authError.textContent = error.code === "auth/unauthorized-domain"
       ? "此網站網域尚未加入 Firebase Authentication 授權網域。"
