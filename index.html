@@ -16,10 +16,12 @@ import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRe
 
 // 請將 firebaseConfig 換成 Firebase Console「專案設定 > 您的應用程式」中的網頁設定。
 const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  appId: "YOUR_FIREBASE_APP_ID"
+  apiKey: "AIzaSyBUc-MtBNshbhLN8wAmu6xpnkDp7jxWCHE",
+  authDomain: "daymark-ef86c.firebaseapp.com",
+  projectId: "daymark-ef86c",
+  storageBucket: "daymark-ef86c.firebasestorage.app",
+  messagingSenderId: "804531957776",
+  appId: "1:804531957776:web:67eb64494a9d6833b69a95"
 };
 const firebaseConfigured = !Object.values(firebaseConfig).some(v => String(v).startsWith("YOUR_"));
 const authGate = document.getElementById("authGate");
