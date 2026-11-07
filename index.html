@@ -12,7 +12,7 @@
 <section class="view" id="settings"><div class="title"><div><div class="green">個人化使用體驗</div><h1>設定與提醒</h1><div class="muted">實際電子郵件與 LINE 推播需後端服務及帳號授權。</div></div></div><div class="settings"><div class="card" style="padding:16px"><h3>提醒管道</h3><div class="setting">系統通知 <input type="checkbox" checked style="float:right"></div><div class="setting">電子郵件 <input type="checkbox" checked style="float:right"></div><div class="setting">LINE <input type="checkbox" style="float:right"></div><div class="setting">行程提醒 <select><option>開始前 15 分鐘</option><option>30 分鐘</option><option>1 小時</option></select></div><div class="setting">任務提醒 <select><option>截止前 1 天</option><option>3 天</option><option>1 週</option></select></div></div><div class="card" style="padding:16px"><h3>分類與偏好</h3><div class="setting">分類：工作、個人、家庭</div><div class="setting">自訂標籤：可新增</div><div class="setting">週起始日 <select><option>星期一</option><option>星期日</option></select></div><div class="setting">時間格式 <select><option>24 小時制</option><option>12 小時制</option></select></div></div></div></section>
 </div></main></div><div class="modalbg" id="modalbg"><div class="modal"><h2>新增項目 <button id="close" style="float:right;border:0;background:white;font-size:20px">×</button></h2><form id="form"><div class="form"><label class="wide">項目名稱 *<input name="title" required placeholder="例如：準備提案簡報"></label><label>類型<select name="type"><option value="task">任務</option><option value="event">行程</option></select></label><label>分類<select name="category"><option>工作</option><option>個人</option><option>家庭</option></select></label><label>日期／截止日<input type="date" name="date" required></label><label>優先級<select name="priority"><option value="">不設定</option><option value="high">高</option><option value="medium">中</option><option value="low">低</option></select></label><label>開始時間<input type="time" name="start"></label><label>預估時長<select name="duration"><option value="30">30 分鐘</option><option value="60" selected>1 小時</option><option value="90">1.5 小時</option><option value="120">2 小時</option><option value="180">3 小時</option></select></label><label class="wide">自訂標籤<input name="tag" placeholder="例如：本週重點"></label><label class="wide">提醒方式<select name="reminder"><option>系統通知</option><option>電子郵件</option><option>LINE</option><option>系統通知、電子郵件</option><option>系統通知、LINE</option><option>不提醒</option></select></label></div><div class="footer"><button type="button" id="cancel" class="secondary">取消</button><button class="btn">儲存項目</button></div></form></div></div><div class="toast" id="toast"></div>
 <script type="module">import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut as firebaseSignOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut as firebaseSignOut } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
 // Firebase Web App config for daymark-ef86c.
 const firebaseConfig = {
@@ -54,10 +54,19 @@ if (firebaseConfigured) {
   googleSignIn.addEventListener("click", async () => {
     googleSignIn.disabled = true;
     authError.textContent = "";
-    authMessage.textContent = "正在前往 Google 登入…";
+    authMessage.textContent = "正在開啟 Google 登入視窗…";
     try {
-      await signInWithRedirect(firebaseAuth, googleProvider);
+      await signInWithPopup(firebaseAuth, googleProvider);
     } catch (error) {
+      if (error.code === "auth/popup-blocked") {
+        authMessage.textContent = "登入視窗遭到封鎖，改用重新導向登入…";
+        try {
+          await signInWithRedirect(firebaseAuth, googleProvider);
+          return;
+        } catch (redirectError) {
+          error = redirectError;
+        }
+      }
       authMessage.textContent = "登入尚未完成，請再試一次。";
       authError.textContent = error.code === "auth/unauthorized-domain"
         ? "此網站網域尚未加入 Firebase Authentication 授權網域。"
