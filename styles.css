@@ -68,3 +68,14 @@ h2 { margin: 0; font-size: 1.43rem; letter-spacing: .04em; }
 .bmi-result { margin: 18px 0 0; color: var(--lavender-dark); font-size: 1.05rem; font-weight: 800; text-align: center; }
 .bmi-note { margin: 10px 0 0; color: var(--muted); font-size: .76rem; line-height: 1.6; }
 @media (max-width: 520px) { .bmi-form { grid-template-columns: 1fr 1fr; } .bmi-form > .add-button { grid-column: 1 / -1; } }
+.hero-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.account-panel { flex: 0 0 auto; }
+.google-button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; padding: 9px 15px; border: 1px solid #dfe3ea; border-radius: 11px; background: #fff; color: #364152; box-shadow: 0 2px 7px rgba(55, 65, 95, .06); font-size: .87rem; font-weight: 700; transition: background .15s, box-shadow .15s; }
+.google-button:hover { background: #fafaff; box-shadow: 0 4px 12px rgba(55, 65, 95, .11); }
+.google-mark { font-family: Arial, sans-serif; font-size: 1.2rem; font-weight: 800; color: #4285f4; }
+.account-info { display: flex; align-items: center; gap: 10px; max-width: 250px; }
+.account-name { overflow: hidden; color: #59657a; font-size: .83rem; text-overflow: ellipsis; white-space: nowrap; }
+.sign-out-button { flex: 0 0 auto; padding: 7px 10px; border: 1px solid #e8eaf0; border-radius: 8px; background: #fff; color: #737f92; font-size: .8rem; }
+.sign-out-button:hover { background: #f8f7ff; color: var(--lavender-dark); }
+button:disabled, input:disabled { cursor: not-allowed; opacity: .6; }
+@media (max-width: 640px) { .hero-heading { align-items: flex-start; flex-direction: column; gap: 16px; } .account-info { max-width: min(90vw, 340px); } }

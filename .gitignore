@@ -5,3 +5,6 @@ node_modules/
 *.sqlite
 *.sqlite-*
 .DS_Store
+
+# Local Firebase config is ignored; only sample config is versioned
+firebase-config.json
