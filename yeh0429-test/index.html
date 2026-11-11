@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7fb">
+  <meta name="description" content="簡單、可在瀏覽器本機保存的待辦清單。">
+  <title>待辦清單｜我的小日常</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <p class="eyebrow"><span class="sparkle" aria-hidden="true">✳</span> MY LITTLE DAY</p>
+      <h1>把今天，<span>慢慢完成。</span></h1>
+      <p class="intro">不用一次做到全部。先記下來，再一步一步來。</p>
+    </header>
+
+    <section class="board" aria-labelledby="list-title">
+      <div class="board-top">
+        <div>
+          <p class="date-label" id="today-label"></p>
+          <h2 id="list-title">今日清單</h2>
+        </div>
+        <p class="count" id="task-count" aria-live="polite">0 件待辦</p>
+      </div>
+
+      <form id="todo-form" class="add-form">
+        <label class="visually-hidden" for="title">新增一件待辦</label>
+        <input id="title" name="title" maxlength="200" placeholder="接下來想完成什麼？" required autocomplete="off">
+        <button type="submit" class="add-button"><span aria-hidden="true">＋</span> 新增</button>
+      </form>
+
+      <p id="message" class="message" role="status" aria-live="polite"></p>
+      <ul id="items" class="items" aria-label="待辦事項"></ul>
+      <div id="empty-state" class="empty-state" hidden>
+        <span class="empty-icon" aria-hidden="true">☼</span>
+        <p>清單還是空的</p>
+        <span>新增一件小事，開始今天的步調吧。</span>
+      </div>
+
+      <footer class="board-footer">
+        <span>✦ 每完成一件，都是一點點進步</span>
+        <button id="clear-done" class="clear-button" type="button" hidden>清除已完成</button>
+      </footer>
+    </section>
+
+    <section class="board bmi-board" aria-labelledby="bmi-title">
+      <div class="board-top">
+        <div>
+          <p class="date-label">健康小工具</p>
+          <h2 id="bmi-title">BMI 身體質量指數</h2>
+        </div>
+      </div>
+      <form id="bmi-form" class="bmi-form">
+        <div class="bmi-field">
+          <label for="height">身高</label>
+          <div class="bmi-input-wrap"><input id="height" name="height" type="number" min="50" max="250" step="0.1" placeholder="例如 165" required><span>公分</span></div>
+        </div>
+        <div class="bmi-field">
+          <label for="weight">體重</label>
+          <div class="bmi-input-wrap"><input id="weight" name="weight" type="number" min="10" max="500" step="0.1" placeholder="例如 55" required><span>公斤</span></div>
+        </div>
+        <button type="submit" class="add-button">計算 BMI</button>
+      </form>
+      <p id="bmi-result" class="bmi-result" role="status" aria-live="polite">輸入身高與體重來計算</p>
+      <p class="bmi-note">BMI 僅供一般參考，不能取代醫療評估；兒童、青少年及孕婦的判讀方式不同。</p>
+    </section>
+    <p class="privacy-note"><span aria-hidden="true">▣</span> 資料只保存在這個瀏覽器，不會上傳到伺服器。</p>
+  </main>
+</body>
+</html>
