@@ -27,7 +27,7 @@
 
 ## AI 小幫手
 
-頁面右下角的 AI 小幫手使用 Firebase AI Logic 與 Gemini Developer API，不需要在前端放置模型 API 金鑰，也不會將對話存入 Firestore。送出問題時，瀏覽器會把問題與目前待辦清單傳送給 Google Gemini；請勿在待辦或提問中放入密碼等敏感資料。Firebase Console 須啟用 **AI Logic**，並為 **Daymark Web** 註冊 App Check 的 reCAPTCHA Enterprise 網站金鑰；將網站金鑰存入本機 `firebase-config.json` 的 `appCheckSiteKey`，並在 GitHub Actions Variables 設定 `FIREBASE_APPCHECK_SITE_KEY`。模型目前使用 `gemini-3.8-flash`；Firebase AI Logic 的可用額度依 Google 當前方案與模型配額而定，公開網站也建議設定 API 配額限制。
+頁面右下角的 AI 小幫手使用 Firebase AI Logic 與 Gemini Developer API，不需要在前端放置模型 API 金鑰，也不會將對話存入 Firestore。送出問題時，瀏覽器會把問題與目前待辦清單傳送給 Google Gemini；請勿在待辦或提問中放入密碼等敏感資料。Firebase Console 須啟用 **AI Logic**，並為 **Daymark Web** 註冊 App Check 的 reCAPTCHA Enterprise 網站金鑰；將網站金鑰存入本機 `firebase-config.json` 的 `appCheckSiteKey`，並在 GitHub Actions Variables 設定 `FIREBASE_APPCHECK_SITE_KEY`。模型使用 `gemini-3.5-flash-lite`，定位為高速、高用量的文字模型；Firebase AI Logic 的實際可用額度與服務狀況依 Google 當前方案及模型配額而定，公開網站也建議設定 API 配額限制。
 
 ## 本機預覽
 
