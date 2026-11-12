@@ -20,6 +20,7 @@ let localTodos = [];
 let todos = [];
 let authReady = false;
 let remoteTodosReady = false;
+let loadTimeout = null;
 
 if (firebaseConfigured) {
   const app = initializeApp(FIREBASE_CONFIG);
@@ -70,11 +71,20 @@ function reportFirebaseError(error) {
     "auth/popup-blocked": "瀏覽器封鎖了登入視窗，請允許彈出視窗後重試。",
     "auth/unauthorized-domain": "這個網站網域尚未加入 Firebase 授權網域。",
     "permission-denied": "Firebase 權限不足，請檢查 Firestore 安全性規則。",
+    "unavailable": "暫時無法連上 Firestore，請檢查網路後重試。",
+    "failed-precondition": "Firestore 尚未準備好，請檢查資料庫設定。",
   };
-  message.textContent = messages[error.code] || "Firebase 連線失敗，請確認設定與網路後再試。";
+  message.textContent = messages[error.code]
+    || `Firebase 連線失敗${error.code ? `（${error.code}）` : ""}，請確認設定與網路後再試。`;
+}
+
+function clearLoadTimeout() {
+  if (loadTimeout !== null) clearTimeout(loadTimeout);
+  loadTimeout = null;
 }
 
 function connectUser(user) {
+  clearLoadTimeout();
   stopListening?.();
   stopListening = null;
   currentUser = user;
@@ -93,29 +103,54 @@ function connectUser(user) {
     return;
   }
 
+  localTodos = readLocalTodos();
   message.textContent = "正在載入雲端清單……";
-  stopListening = onSnapshot(collection(database, "users", user.uid, "todos"), async (snapshot) => {
-    if (currentUser?.uid !== user.uid) return;
-    const isFirstServerSnapshot = !snapshot.metadata.fromCache && !remoteTodosReady;
-    todos = snapshot.docs.map((entry) => ({id: entry.id, ...entry.data()}))
-      .filter((todo) => typeof todo.title === "string" && typeof todo.done === "boolean");
-    if (isFirstServerSnapshot) {
-      if (snapshot.empty && localTodos.length) {
-        todos = localTodos.map((todo) => ({...todo}));
-        await persistTodos();
-        if (currentUser?.uid !== user.uid) return;
-        localTodos = [];
-        saveLocalTodos();
-      }
-      remoteTodosReady = true;
-      if (!snapshot.empty) {
-        localTodos = [];
-        saveLocalTodos();
-      }
+  loadTimeout = setTimeout(() => {
+    if (currentUser?.uid === user.uid && !remoteTodosReady) {
+      message.textContent = "雲端清單載入逾時，請檢查網路與 Firestore 設定後重新整理。";
     }
-    render();
-    message.textContent = "清單已與 Firebase 同步";
-  }, reportFirebaseError);
+  }, 15000);
+  stopListening = onSnapshot(collection(database, "users", user.uid, "todos"),
+    {includeMetadataChanges: true}, (snapshot) => {
+      if (currentUser?.uid !== user.uid) return;
+      try {
+        const fromServer = !snapshot.metadata.fromCache;
+        const firstServerSnapshot = fromServer && !remoteTodosReady;
+        const remoteTodos = snapshot.docs.map((entry) => ({id: entry.id, ...entry.data()}))
+          .filter((todo) => typeof todo.title === "string" && typeof todo.done === "boolean");
+        if (firstServerSnapshot) {
+          remoteTodosReady = true;
+          clearLoadTimeout();
+          if (snapshot.empty && localTodos.length) {
+            todos = localTodos.map((todo) => ({...todo}));
+            render();
+            message.textContent = "正在將本機清單匯入雲端……";
+            void persistTodos().then((saved) => {
+              if (saved && currentUser?.uid === user.uid) {
+                localTodos = [];
+                saveLocalTodos();
+              }
+            });
+            return;
+          }
+          if (!snapshot.empty) {
+            localTodos = [];
+            saveLocalTodos();
+          }
+        }
+        todos = remoteTodos;
+        render();
+        message.textContent = fromServer && !snapshot.metadata.hasPendingWrites
+          ? "清單已與 Firebase 同步"
+          : remoteTodosReady ? "正在同步雲端清單……" : "已顯示快取清單，正在連接雲端……";
+      } catch (error) {
+        clearLoadTimeout();
+        reportFirebaseError(error);
+      }
+    }, (error) => {
+      clearLoadTimeout();
+      reportFirebaseError(error);
+    });
 }
 
 async function persistTodos() {
@@ -132,7 +167,7 @@ async function persistTodos() {
   const user = currentUser;
   const snapshot = todos.map((todo) => ({...todo}));
   const write = saveQueue.then(async () => {
-    if (currentUser?.uid !== user.uid || !remoteTodosReady) return;
+    if (currentUser?.uid !== user.uid || !remoteTodosReady) return false;
     const reference = collection(database, "users", user.uid, "todos");
     const existing = await getDocs(reference);
     if (currentUser?.uid !== user.uid) return;
@@ -144,9 +179,13 @@ async function persistTodos() {
     existing.docs.filter((entry) => !keep.has(entry.id)).forEach((entry) => batch.delete(entry.ref));
     if (snapshot.length || existing.size) await batch.commit();
     if (currentUser?.uid === user.uid) message.textContent = "清單已與 Firebase 同步";
+    return true;
   });
-  saveQueue = write.catch(reportFirebaseError);
-  await saveQueue;
+  saveQueue = write.catch((error) => {
+    reportFirebaseError(error);
+    return false;
+  });
+  return await saveQueue;
 }
 
 dateLabel.textContent = new Intl.DateTimeFormat("zh-TW", {
