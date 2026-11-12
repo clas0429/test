@@ -32,8 +32,9 @@ jobs:
           FIREBASE_AUTH_DOMAIN: ${{ vars.FIREBASE_AUTH_DOMAIN }}
           FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
           FIREBASE_APP_ID: ${{ vars.FIREBASE_APP_ID }}
+          FIREBASE_APPCHECK_SITE_KEY: ${{ vars.FIREBASE_APPCHECK_SITE_KEY }}
         run: |
-          node -e 'const fs=require("node:fs"); const vars=["FIREBASE_API_KEY","FIREBASE_AUTH_DOMAIN","FIREBASE_PROJECT_ID","FIREBASE_APP_ID"]; const missing=vars.filter((key)=>!process.env[key]); if(missing.length){console.error("Missing GitHub Actions variables: " + missing.join(", ")); process.exit(1)}; fs.mkdirSync("_site",{recursive:true}); fs.copyFileSync("index.html","_site/index.html"); fs.copyFileSync("styles.css","_site/styles.css"); const config={apiKey:process.env.FIREBASE_API_KEY,authDomain:process.env.FIREBASE_AUTH_DOMAIN,projectId:process.env.FIREBASE_PROJECT_ID,appId:process.env.FIREBASE_APP_ID}; const source=fs.readFileSync("app.js","utf8").replace("__FIREBASE_CONFIG__",JSON.stringify(config)); fs.writeFileSync("_site/app.js",source);'
+          node -e 'const fs=require("node:fs"); const vars=["FIREBASE_API_KEY","FIREBASE_AUTH_DOMAIN","FIREBASE_PROJECT_ID","FIREBASE_APP_ID","FIREBASE_APPCHECK_SITE_KEY"]; const missing=vars.filter((key)=>!process.env[key]); if(missing.length){console.error("Missing GitHub Actions variables: " + missing.join(", ")); process.exit(1)}; fs.mkdirSync("_site",{recursive:true}); fs.copyFileSync("index.html","_site/index.html"); fs.copyFileSync("styles.css","_site/styles.css"); const config={apiKey:process.env.FIREBASE_API_KEY,authDomain:process.env.FIREBASE_AUTH_DOMAIN,projectId:process.env.FIREBASE_PROJECT_ID,appId:process.env.FIREBASE_APP_ID,appCheckSiteKey:process.env.FIREBASE_APPCHECK_SITE_KEY}; const source=fs.readFileSync("app.js","utf8").replace("__FIREBASE_CONFIG__",JSON.stringify(config)); fs.writeFileSync("_site/app.js",source);'
       - name: Upload static site
         uses: actions/upload-pages-artifact@v3
         with:

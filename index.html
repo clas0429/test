@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#f5f7fb">
   <meta name="description" content="簡單、可在瀏覽器本機保存的待辦清單。">
   <title>待辦清單｜我的小日常</title>
-  <link rel="stylesheet" href="./styles.css?v=20261112-6">
-  <script type="module" src="./app.js?v=20261112-6"></script>
+  <link rel="stylesheet" href="./styles.css?v=20261112-7">
+  <script type="module" src="./app.js?v=20261112-7"></script>
 </head>
 <body>
   <main class="shell">
@@ -70,5 +70,28 @@
 
     <p class="privacy-note"><span aria-hidden="true">▣</span> 登入後清單會同步至 Firebase；未登入時只保存在這個瀏覽器。</p>
   </main>
+
+  <button id="assistant-toggle" class="assistant-toggle" type="button" aria-expanded="false" aria-controls="assistant-panel">
+    <span aria-hidden="true">✦</span> AI 小幫手
+  </button>
+  <section id="assistant-panel" class="assistant-panel" aria-labelledby="assistant-title" hidden>
+    <header class="assistant-header">
+      <div>
+        <p class="assistant-eyebrow">MY LITTLE DAY</p>
+        <h2 id="assistant-title">AI 小幫手</h2>
+      </div>
+      <button id="assistant-close" class="assistant-close" type="button" aria-label="關閉 AI 小幫手">×</button>
+    </header>
+    <p class="assistant-hint">可以問我清單裡還有哪些工作，或請我整理一下。</p>
+    <div id="assistant-messages" class="assistant-messages" role="log" aria-live="polite" aria-relevant="additions">
+      <p class="chat-message chat-message-assistant">嗨！我可以根據目前的待辦清單回答問題。</p>
+    </div>
+    <form id="assistant-form" class="assistant-form">
+      <label class="visually-hidden" for="assistant-input">輸入要詢問的待辦問題</label>
+      <textarea id="assistant-input" maxlength="1000" rows="2" placeholder="例如：還有哪些事沒完成？" required></textarea>
+      <button id="assistant-send" class="assistant-send" type="submit">送出</button>
+    </form>
+    <p id="assistant-status" class="assistant-status" role="status" aria-live="polite">問題與目前清單會傳送至 Google Gemini；對話不會儲存在 Firebase。</p>
+  </section>
 </body>
 </html>

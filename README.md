@@ -18,11 +18,16 @@
    - `FIREBASE_AUTH_DOMAIN`
    - `FIREBASE_PROJECT_ID`
    - `FIREBASE_APP_ID`
+   - `FIREBASE_APPCHECK_SITE_KEY`
 6. 在 Firebase 的 **Authentication → Settings → Authorized domains** 加入 `localhost` 和 `clas0429.github.io`。將 `firestore.rules` 發佈至 Firestore Rules。設定上述 GitHub Variables 後，將變更推送至 `main`，等待 `Deploy to GitHub Pages` 成功，再到網站測試登入。
 
 未登入時沿用本機清單。第一次登入若該帳號的雲端清單是空的，會將本機清單匯入該帳號；若雲端已有清單，雲端資料優先，本機舊清單不會覆蓋雲端資料。Firebase Auth 使用彈出式 Google 或 LINE 登入；請在 HTTPS 網站或 `localhost` 使用，不支援直接用 `file://` 開啟登入。本機設定檔缺少時，網站仍可用本機待辦，但登入功能無法連線；GitHub Variables 缺少時部署工作會明確失敗，避免發布一個看似已更新、實際沒有登入設定的網站。
 
 登入後可在帳號區選擇「連結 Google」或「連結 LINE」，將兩種方式綁定到同一個 Firebase 帳號，共用同一份雲端清單。若登入時提示電子郵件已使用另一種方式，先用原本方式登入，再從帳號區連結另一種方式。
+
+## AI 小幫手
+
+頁面右下角的 AI 小幫手使用 Firebase AI Logic 與 Gemini Developer API，不需要在前端放置模型 API 金鑰，也不會將對話存入 Firestore。送出問題時，瀏覽器會把問題與目前待辦清單傳送給 Google Gemini；請勿在待辦或提問中放入密碼等敏感資料。Firebase Console 須啟用 **AI Logic**，並為 **Daymark Web** 註冊 App Check 的 reCAPTCHA Enterprise 網站金鑰；將網站金鑰存入本機 `firebase-config.json` 的 `appCheckSiteKey`，並在 GitHub Actions Variables 設定 `FIREBASE_APPCHECK_SITE_KEY`。模型目前使用 `gemini-3.8-flash`；Firebase AI Logic 的可用額度依 Google 當前方案與模型配額而定，公開網站也建議設定 API 配額限制。
 
 ## 本機預覽
 
