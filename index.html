@@ -6,8 +6,8 @@
   <meta name="theme-color" content="#f5f7fb">
   <meta name="description" content="簡單、可在瀏覽器本機保存的待辦清單。">
   <title>待辦清單｜我的小日常</title>
-  <link rel="stylesheet" href="./styles.css?v=20261112-5">
-  <script type="module" src="./app.js?v=20261112-5"></script>
+  <link rel="stylesheet" href="./styles.css?v=20261112-6">
+  <script type="module" src="./app.js?v=20261112-6"></script>
 </head>
 <body>
   <main class="shell">
@@ -19,12 +19,21 @@
           <p class="intro">不用一次做到全部。先記下來，再一步一步來。</p>
         </div>
         <div class="account-panel" aria-live="polite">
-          <button id="sign-in" class="google-button" type="button">
-            <span class="google-mark" aria-hidden="true">G</span>使用 Google 登入
-          </button>
+          <div id="sign-in" class="sign-in-options">
+            <button class="google-button" data-auth-provider="google" type="button">
+              <span class="google-mark" aria-hidden="true">G</span>使用 Google 登入
+            </button>
+            <button class="line-button" data-auth-provider="line" type="button">
+              <span class="line-mark" aria-hidden="true">LINE</span>使用 LINE 登入
+            </button>
+          </div>
           <div id="account-info" class="account-info" hidden>
             <span id="account-name" class="account-name"></span>
-            <button id="sign-out" class="sign-out-button" type="button">登出</button>
+            <div class="account-actions">
+              <button id="link-google" class="link-button" type="button" hidden>連結 Google</button>
+              <button id="link-line" class="link-button" type="button" hidden>連結 LINE</button>
+              <button id="sign-out" class="sign-out-button" type="button">登出</button>
+            </div>
           </div>
         </div>
       </div>

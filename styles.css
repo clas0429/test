@@ -79,3 +79,12 @@ button:disabled, input:disabled { cursor: not-allowed; opacity: .6; }
 .save-button { padding: 6px 9px; border: 0; border-radius: 7px; background: var(--lavender); color: #fff; font-size: .81rem; font-weight: 700; }
 .save-button:hover { background: var(--lavender-dark); }
 .cancel-button:hover { background: #f4f5f8; color: #59657a; }
+.sign-in-options { display: grid; gap: 8px; }
+.google-button, .line-button { width: 100%; }
+.line-button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 44px; padding: 9px 15px; border: 1px solid #06b955; border-radius: 11px; background: #06c755; color: #fff; box-shadow: 0 2px 7px rgba(55, 65, 95, .06); font-size: .87rem; font-weight: 700; transition: background .15s, box-shadow .15s; }
+.line-button:hover { background: #05b64d; box-shadow: 0 4px 12px rgba(55, 65, 95, .11); }
+.line-mark { padding: 2px 5px; border: 1px solid currentColor; border-radius: 4px; font-size: .67rem; font-weight: 800; letter-spacing: .02em; }
+.account-info { align-items: flex-start; flex-direction: column; }
+.account-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.link-button { padding: 7px 9px; border: 1px solid #e8eaf0; border-radius: 8px; background: #fff; color: #737f92; font-size: .78rem; }
+.link-button:hover { background: #f8f7ff; color: var(--lavender-dark); }

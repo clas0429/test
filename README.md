@@ -1,24 +1,28 @@
 # 我的待辦清單
 
-待辦清單可部署到 GitHub Pages。未登入時，待辦保存在目前瀏覽器；使用 Google 登入後，待辦清單會透過 Firebase Authentication 與 Cloud Firestore 同步。
+待辦清單可部署到 GitHub Pages。未登入時，待辦保存在目前瀏覽器；使用 Google 或 LINE 登入後，待辦清單會透過 Firebase Authentication 與 Cloud Firestore 同步。
 
 線上 Firebase 專案為 **Daymark**（專案 ID：`daymark-ef86c`）。
 
-## Firebase 與 Google 登入設定
+## Firebase、Google 與 LINE 登入設定
 
 此專案使用 Firebase 網頁 SDK。Web App 設定會公開在靜態網站程式中，請勿把 Firebase Admin 私鑰放入前端；資料存取由 Firestore 安全性規則保護。設定步驟：
 
 1. 在 Firebase Console 建立或選取專案，新增 Web App，取得 `apiKey`、`authDomain`、`projectId`、`appId`；如已登入 Firebase Console，可從專案設定 **Your apps → SDK setup and configuration → Config** 複製這四個欄位。
-2. 在 **Authentication → Sign-in method** 啟用 **Google**；到 **Authentication → Settings → Authorized domains** 加入 `clas0429.github.io`，本機測試則加入 `localhost`。
-3. 建立 Cloud Firestore database，將本目錄的 `firestore.rules` 發佈為 Firestore Rules。
-4. 本機測試：複製 `firebase-config.example.json` 為未納入 Git 的 `firebase-config.json`，再填入 Firebase Web App 設定。GitHub Pages 部署則在儲存庫 **Settings → Secrets and variables → Actions → Variables** 新增以下 Repository variables（不是 Secrets）：
+2. 在 **Authentication → Sign-in method** 啟用 **Google**。
+3. 在 LINE Developers 建立 **LINE Login** Channel，將 Firebase 回呼網址 `https://<authDomain>/__/auth/handler` 加入 Channel 的 Callback URL。先在 Firebase Authentication 啟用 Identity Platform，再新增 **OpenID Connect** 供應商：Provider ID 設為 `oidc.line`、Issuer 設為 `https://access.line.me`，並填入 LINE Channel ID 與 Channel secret。LINE Channel secret 只填在 Firebase Console，不要放進網站程式或 GitHub Variables。
+   - Spark 維持免費且不需綁信用卡；Identity Platform 的 OIDC 每日上限為 2 位活躍使用者。若需更高用量，請先確認 Blaze 方案費率。
+4. 建立 Cloud Firestore database，將本目錄的 `firestore.rules` 發佈為 Firestore Rules。
+5. 本機測試：複製 `firebase-config.example.json` 為未納入 Git 的 `firebase-config.json`，再填入 Firebase Web App 設定。GitHub Pages 部署則在儲存庫 **Settings → Secrets and variables → Actions → Variables** 新增以下 Repository variables（不是 Secrets）：
    - `FIREBASE_API_KEY`
    - `FIREBASE_AUTH_DOMAIN`
    - `FIREBASE_PROJECT_ID`
    - `FIREBASE_APP_ID`
-5. 在 Firebase 的 **Authentication → Settings → Authorized domains** 加入 `localhost` 和 `clas0429.github.io`。將 `firestore.rules` 發佈至 Firestore Rules。設定上述 GitHub Variables 後，將變更推送至 `main`，等待 `Deploy to GitHub Pages` 成功，再到網站測試登入。
+6. 在 Firebase 的 **Authentication → Settings → Authorized domains** 加入 `localhost` 和 `clas0429.github.io`。將 `firestore.rules` 發佈至 Firestore Rules。設定上述 GitHub Variables 後，將變更推送至 `main`，等待 `Deploy to GitHub Pages` 成功，再到網站測試登入。
 
-未登入時沿用本機清單。第一次登入若該帳號的雲端清單是空的，會將本機清單匯入該帳號；若雲端已有清單，雲端資料優先，本機舊清單不會覆蓋雲端資料。Firebase Auth 使用彈出式 Google 登入；請在 HTTPS 網站或 `localhost` 使用，不支援直接用 `file://` 開啟登入。本機設定檔缺少時，網站仍可用本機待辦，但登入功能無法連線；GitHub Variables 缺少時部署工作會明確失敗，避免發布一個看似已更新、實際沒有登入設定的網站。
+未登入時沿用本機清單。第一次登入若該帳號的雲端清單是空的，會將本機清單匯入該帳號；若雲端已有清單，雲端資料優先，本機舊清單不會覆蓋雲端資料。Firebase Auth 使用彈出式 Google 或 LINE 登入；請在 HTTPS 網站或 `localhost` 使用，不支援直接用 `file://` 開啟登入。本機設定檔缺少時，網站仍可用本機待辦，但登入功能無法連線；GitHub Variables 缺少時部署工作會明確失敗，避免發布一個看似已更新、實際沒有登入設定的網站。
+
+登入後可在帳號區選擇「連結 Google」或「連結 LINE」，將兩種方式綁定到同一個 Firebase 帳號，共用同一份雲端清單。若登入時提示電子郵件已使用另一種方式，先用原本方式登入，再從帳號區連結另一種方式。
 
 ## 本機預覽
 

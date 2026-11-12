@@ -1,5 +1,5 @@
 import {initializeApp} from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-import {getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut} from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+import {getAuth, GoogleAuthProvider, OAuthProvider, onAuthStateChanged, signInWithPopup, linkWithPopup, signOut} from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 import {getFirestore, collection, doc, onSnapshot, writeBatch, getDocs} from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
 const FIREBASE_CONFIG = await (async () => {
@@ -36,10 +36,13 @@ if (firebaseConfigured) {
 }
 
 const STORAGE_KEY = "my-little-day.todos.v1";
-const signInButton = document.querySelector("#sign-in");
+const signInPanel = document.querySelector("#sign-in");
+const signInButtons = [...document.querySelectorAll("[data-auth-provider]")];
 const signOutButton = document.querySelector("#sign-out");
 const accountInfo = document.querySelector("#account-info");
 const accountName = document.querySelector("#account-name");
+const linkGoogleButton = document.querySelector("#link-google");
+const linkLineButton = document.querySelector("#link-line");
 const form = document.querySelector("#todo-form");
 const input = document.querySelector("#title");
 const list = document.querySelector("#items");
@@ -74,15 +77,34 @@ function saveLocalTodos() {
 function reportFirebaseError(error) {
   console.error("Firebase operation failed", error);
   const messages = {
-    "auth/popup-closed-by-user": "已關閉 Google 登入視窗。",
+    "auth/popup-closed-by-user": "已關閉登入視窗。",
     "auth/popup-blocked": "瀏覽器封鎖了登入視窗，請允許彈出視窗後重試。",
     "auth/unauthorized-domain": "這個網站網域尚未加入 Firebase 授權網域。",
+    "auth/operation-not-allowed": "此登入方式尚未在 Firebase Authentication 啟用。",
+    "auth/invalid-oauth-provider": "LINE 登入尚未完成 Firebase OIDC 設定。",
+    "auth/account-exists-with-different-credential": "此電子郵件已使用另一種登入方式；請先登入原帳號，再連結另一種登入方式。",
+    "auth/credential-already-in-use": "這個登入方式已連結至另一個清單帳號，請使用該登入方式登入。",
     "permission-denied": "Firebase 權限不足，請檢查 Firestore 安全性規則。",
     "unavailable": "暫時無法連上 Firestore，請檢查網路後重試。",
     "failed-precondition": "Firestore 尚未準備好，請檢查資料庫設定。",
   };
   message.textContent = messages[error.code]
     || `Firebase 連線失敗${error.code ? `（${error.code}）` : ""}，請確認設定與網路後再試。`;
+}
+
+function createAuthProvider(providerName) {
+  if (providerName === "line") {
+    const provider = new OAuthProvider("oidc.line");
+    provider.addScope("profile");
+    return provider;
+  }
+  return new GoogleAuthProvider();
+}
+
+function updateLinkedProviderButtons(user) {
+  const providerIds = new Set((user?.providerData || []).map((provider) => provider.providerId));
+  linkGoogleButton.hidden = !user || providerIds.has("google.com");
+  linkLineButton.hidden = !user || providerIds.has("oidc.line");
 }
 
 function clearLoadTimeout() {
@@ -100,9 +122,10 @@ function connectUser(user) {
   saveQueue = Promise.resolve();
   input.disabled = Boolean(user);
   form.querySelector("button[type=submit]").disabled = Boolean(user);
-  signInButton.hidden = Boolean(user);
+  signInPanel.hidden = Boolean(user);
   accountInfo.hidden = !user;
-  accountName.textContent = user ? (user.displayName || user.email || "Google 使用者") : "";
+  accountName.textContent = user ? (user.displayName || user.email || "已登入使用者") : "";
+  updateLinkedProviderButtons(user);
   if (!user) {
     todos = readLocalTodos();
     localTodos = todos.map((todo) => ({...todo}));
@@ -328,19 +351,43 @@ clearDoneButton.addEventListener("click", () => {
   render();
 });
 
-signInButton.addEventListener("click", async () => {
-  if (!auth) {
-    message.textContent = "Firebase 尚未設定；請依 README 完成 Firebase 設定後重新部署。";
-    return;
-  }
-  signInButton.disabled = true;
+signInButtons.forEach((button) => {
+  button.addEventListener("click", async () => {
+    if (!auth) {
+      message.textContent = "Firebase 尚未設定；請依 README 完成 Firebase 設定後重新部署。";
+      return;
+    }
+    signInButtons.forEach((entry) => { entry.disabled = true; });
+    try {
+      await signInWithPopup(auth, createAuthProvider(button.dataset.authProvider));
+    } catch (error) {
+      reportFirebaseError(error);
+    } finally {
+      signInButtons.forEach((entry) => { entry.disabled = false; });
+    }
+  });
+});
+
+async function linkAccountProvider(providerName, button) {
+  if (!auth?.currentUser) return;
+  button.disabled = true;
   try {
-    await signInWithPopup(auth, new GoogleAuthProvider());
+    const result = await linkWithPopup(auth.currentUser, createAuthProvider(providerName));
+    updateLinkedProviderButtons(result.user);
+    message.textContent = `${providerName === "line" ? "LINE" : "Google"} 已連結至目前帳號。`;
   } catch (error) {
     reportFirebaseError(error);
   } finally {
-    signInButton.disabled = false;
+    button.disabled = false;
   }
+}
+
+linkGoogleButton.addEventListener("click", () => {
+  void linkAccountProvider("google", linkGoogleButton);
+});
+
+linkLineButton.addEventListener("click", () => {
+  void linkAccountProvider("line", linkLineButton);
 });
 
 signOutButton.addEventListener("click", async () => {
