@@ -2,11 +2,16 @@ import {initializeApp} from "https://www.gstatic.com/firebasejs/12.8.0/firebase-
 import {getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut} from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
 import {getFirestore, collection, doc, onSnapshot, writeBatch, getDocs} from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
-const FIREBASE_CONFIG = (() => {
+const FIREBASE_CONFIG = await (async () => {
   try {
     return __FIREBASE_CONFIG__;
   } catch {
-    return null;
+    try {
+      const response = await fetch("./firebase-config.json", {cache: "no-store"});
+      return response.ok ? await response.json() : null;
+    } catch {
+      return null;
+    }
   }
 })();
 const firebaseConfigured = Boolean(FIREBASE_CONFIG?.apiKey && FIREBASE_CONFIG?.authDomain

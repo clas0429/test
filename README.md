@@ -2,6 +2,8 @@
 
 待辦清單可部署到 GitHub Pages。未登入時，待辦保存在目前瀏覽器；使用 Google 登入後，待辦清單會透過 Firebase Authentication 與 Cloud Firestore 同步。
 
+線上 Firebase 專案為 **Daymark**（專案 ID：`daymark-ef86c`）。
+
 ## Firebase 與 Google 登入設定
 
 此專案使用 Firebase 網頁 SDK。Web App 設定會公開在靜態網站程式中，請勿把 Firebase Admin 私鑰放入前端；資料存取由 Firestore 安全性規則保護。設定步驟：
