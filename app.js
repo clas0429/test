@@ -515,7 +515,12 @@ assistantForm.addEventListener("submit", async (event) => {
     console.error("Gemini assistant request failed", error);
     assistantStatus.textContent = error.code === "app-check/not-configured"
       ? "AI 小幫手尚未完成 App Check 設定，請確認網站金鑰已加入 Firebase 與部署設定。"
-      : "Gemini 暫時無法回覆，請確認 Firebase AI Logic 已啟用及網路連線。";
+      : (() => {
+          const code = String(error?.code || error?.name || "unknown");
+          const detail = String(error?.message || "").replace(/\s+/g, " ").slice(0, 180);
+          const diagnostic = [code, detail].filter(Boolean).join(": ");
+          return `Gemini 暫時無法回覆（${diagnostic}）。請稍後再試；若仍失敗，回報括號中的錯誤資訊。`;
+        })();
   } finally {
     assistantInput.disabled = false;
     assistantSendButton.disabled = false;
