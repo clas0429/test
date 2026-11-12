@@ -246,27 +246,3 @@ if (auth) {
   message.textContent = "尚未設定 Firebase；登入功能目前停用，待辦仍會保存在本機。";
   render();
 }
-
-const bmiForm = document.querySelector("#bmi-form");
-const bmiResult = document.querySelector("#bmi-result");
-
-bmiForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  const heightCm = Number(bmiForm.elements.height.value);
-  const weightKg = Number(bmiForm.elements.weight.value);
-  if (!Number.isFinite(heightCm) || !Number.isFinite(weightKg)
-      || heightCm < 50 || heightCm > 250 || weightKg < 10 || weightKg > 500) {
-    bmiResult.textContent = "請輸入有效的身高（50–250 公分）與體重（10–500 公斤）。";
-    return;
-  }
-
-  const bmi = weightKg / ((heightCm / 100) ** 2);
-  let category;
-  if (bmi < 18.5) category = "體重過輕";
-  else if (bmi < 24) category = "正常範圍";
-  else if (bmi < 27) category = "過重";
-  else if (bmi < 30) category = "輕度肥胖";
-  else if (bmi < 35) category = "中度肥胖";
-  else category = "重度肥胖";
-  bmiResult.textContent = `你的 BMI 是 ${bmi.toFixed(1)}（${category}）`;
-});

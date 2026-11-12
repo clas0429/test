@@ -1,6 +1,6 @@
 # 我的待辦清單
 
-待辦清單與 BMI 工具，可部署到 GitHub Pages。登入前待辦保存在目前瀏覽器；使用 Google 登入後，待辦清單會透過 Firebase Authentication 與 Cloud Firestore 同步。BMI 計算只在瀏覽器執行。
+待辦清單可部署到 GitHub Pages。未登入時，待辦保存在目前瀏覽器；使用 Google 登入後，待辦清單會透過 Firebase Authentication 與 Cloud Firestore 同步。
 
 ## Firebase 與 Google 登入設定
 
@@ -16,7 +16,7 @@
    - `FIREBASE_APP_ID`
 5. 在 Firebase 的 **Authentication → Settings → Authorized domains** 加入 `localhost` 和 `clas0429.github.io`。將 `firestore.rules` 發佈至 Firestore Rules。設定上述 GitHub Variables 後，將變更推送至 `main`，等待 `Deploy to GitHub Pages` 成功，再到網站測試登入。
 
-未登入時沿用本機清單。第一次登入若該帳號的雲端清單是空的，會將本機清單匯入該帳號；若雲端已有清單，雲端資料優先，本機舊清單不會覆蓋雲端資料。Firebase Auth 使用彈出式 Google 登入；請在 HTTPS 網站或 `localhost` 使用，不支援直接用 `file://` 開啟登入。本機設定檔缺少時，網站仍可用本機待辦和 BMI 工具，但登入功能無法連線；GitHub Variables 缺少時部署工作會明確失敗，避免發布一個看似已更新、實際沒有登入設定的網站。
+未登入時沿用本機清單。第一次登入若該帳號的雲端清單是空的，會將本機清單匯入該帳號；若雲端已有清單，雲端資料優先，本機舊清單不會覆蓋雲端資料。Firebase Auth 使用彈出式 Google 登入；請在 HTTPS 網站或 `localhost` 使用，不支援直接用 `file://` 開啟登入。本機設定檔缺少時，網站仍可用本機待辦，但登入功能無法連線；GitHub Variables 缺少時部署工作會明確失敗，避免發布一個看似已更新、實際沒有登入設定的網站。
 
 ## 本機預覽
 
