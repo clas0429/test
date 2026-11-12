@@ -26,6 +26,8 @@ let todos = [];
 let authReady = false;
 let remoteTodosReady = false;
 let loadTimeout = null;
+let editingTodoId = null;
+let editingDraft = "";
 
 if (firebaseConfigured) {
   const app = initializeApp(FIREBASE_CONFIG);
@@ -214,20 +216,88 @@ function render() {
       void persistTodos();
       render();
     });
-    const title = document.createElement("span");
-    title.className = "todo-title";
-    title.textContent = todo.title;
-    const remove = document.createElement("button");
-    remove.className = "delete-button";
-    remove.type = "button";
-    remove.textContent = "刪除";
-    remove.setAttribute("aria-label", `刪除：${todo.title}`);
-    remove.addEventListener("click", () => {
-      todos = todos.filter((entry) => entry.id !== todo.id);
-      void persistTodos();
-      render();
-    });
-    item.append(checkbox, title, remove);
+    if (editingTodoId === todo.id) {
+      const editForm = document.createElement("form");
+      editForm.className = "edit-form";
+      const editInput = document.createElement("input");
+      editInput.className = "todo-edit-input";
+      editInput.type = "text";
+      editInput.maxLength = 200;
+      editInput.required = true;
+      editInput.value = editingDraft;
+      editInput.setAttribute("aria-label", `編輯待辦事項：${todo.title}`);
+      editInput.addEventListener("input", () => {
+        editingDraft = editInput.value;
+      });
+      editInput.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          editingTodoId = null;
+          editingDraft = "";
+          render();
+        }
+      });
+      const save = document.createElement("button");
+      save.className = "save-button";
+      save.type = "submit";
+      save.textContent = "儲存";
+      const cancel = document.createElement("button");
+      cancel.className = "cancel-button";
+      cancel.type = "button";
+      cancel.textContent = "取消";
+      cancel.addEventListener("click", () => {
+        editingTodoId = null;
+        editingDraft = "";
+        render();
+      });
+      editForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        const title = editInput.value.trim();
+        if (!title) {
+          message.textContent = "待辦事項不能留白。";
+          editInput.focus();
+          return;
+        }
+        const currentTodo = todos.find((entry) => entry.id === todo.id);
+        if (currentTodo) currentTodo.title = title;
+        editingTodoId = null;
+        editingDraft = "";
+        void persistTodos();
+        render();
+      });
+      editForm.append(editInput, save, cancel);
+      item.append(checkbox, editForm);
+    } else {
+      const title = document.createElement("span");
+      title.className = "todo-title";
+      title.textContent = todo.title;
+      const actions = document.createElement("div");
+      actions.className = "todo-actions";
+      const edit = document.createElement("button");
+      edit.className = "edit-button";
+      edit.type = "button";
+      edit.textContent = "編輯";
+      edit.setAttribute("aria-label", `編輯：${todo.title}`);
+      edit.addEventListener("click", () => {
+        editingTodoId = todo.id;
+        editingDraft = todo.title;
+        render();
+        const editInput = list.querySelector(".todo-edit-input");
+        editInput?.focus();
+        editInput?.select();
+      });
+      const remove = document.createElement("button");
+      remove.className = "delete-button";
+      remove.type = "button";
+      remove.textContent = "刪除";
+      remove.setAttribute("aria-label", `刪除：${todo.title}`);
+      remove.addEventListener("click", () => {
+        todos = todos.filter((entry) => entry.id !== todo.id);
+        void persistTodos();
+        render();
+      });
+      actions.append(edit, remove);
+      item.append(checkbox, title, actions);
+    }
     list.append(item);
   }
   const remaining = todos.filter((todo) => !todo.done).length;
