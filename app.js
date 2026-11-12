@@ -126,6 +126,8 @@ function connectUser(user) {
         if (firstServerSnapshot) {
           remoteTodosReady = true;
           clearLoadTimeout();
+          input.disabled = false;
+          form.querySelector("button[type=submit]").disabled = false;
           if (snapshot.empty && localTodos.length) {
             todos = localTodos.map((todo) => ({...todo}));
             render();
