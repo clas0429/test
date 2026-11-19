@@ -30,6 +30,7 @@ let remoteTodosReady = false;
 let loadTimeout = null;
 let editingTodoId = null;
 let editingDraft = "";
+let activeFilter = "all";
 
 if (firebaseConfigured) {
   const app = initializeApp(FIREBASE_CONFIG);
@@ -67,6 +68,13 @@ const emptyState = document.querySelector("#empty-state");
 const count = document.querySelector("#task-count");
 const clearDoneButton = document.querySelector("#clear-done");
 const dateLabel = document.querySelector("#today-label");
+const priorityInput = document.querySelector("#new-priority");
+const dueDateInput = document.querySelector("#new-due-date");
+const categoryInput = document.querySelector("#new-category");
+const searchInput = document.querySelector("#task-search");
+const sortInput = document.querySelector("#task-sort");
+const filterButtons = [...document.querySelectorAll("[data-filter]")];
+const exportButton = document.querySelector("#export-tasks");
 const assistantToggle = document.querySelector("#assistant-toggle");
 const assistantPanel = document.querySelector("#assistant-panel");
 const assistantClose = document.querySelector("#assistant-close");
@@ -82,7 +90,7 @@ function readLocalTodos() {
     return Array.isArray(value)
       ? value.filter((item) => item && (typeof item.id === "string" || Number.isSafeInteger(item.id))
         && typeof item.title === "string" && typeof item.done === "boolean")
-        .map((item) => ({...item, id: String(item.id)}))
+        .map((item) => ({...item, id: String(item.id), priority: ["high", "low"].includes(item.priority) ? item.priority : "normal", dueDate: typeof item.dueDate === "string" ? item.dueDate : "", category: typeof item.category === "string" ? item.category : ""}))
       : [];
   } catch {
     return [];
@@ -211,7 +219,8 @@ function connectUser(user) {
         const fromServer = !snapshot.metadata.fromCache;
         const firstServerSnapshot = fromServer && !remoteTodosReady;
         const remoteTodos = snapshot.docs.map((entry) => ({id: entry.id, ...entry.data()}))
-          .filter((todo) => typeof todo.title === "string" && typeof todo.done === "boolean");
+          .filter((todo) => typeof todo.title === "string" && typeof todo.done === "boolean")
+          .map((todo) => ({...todo, priority: ["high", "low"].includes(todo.priority) ? todo.priority : "normal", dueDate: typeof todo.dueDate === "string" ? todo.dueDate : "", category: typeof todo.category === "string" ? todo.category : ""}));
         if (firstServerSnapshot) {
           remoteTodosReady = true;
           clearLoadTimeout();
@@ -270,7 +279,8 @@ async function persistTodos() {
     const batch = writeBatch(database);
     const keep = new Set(snapshot.map((todo) => todo.id));
     snapshot.forEach((todo) => batch.set(doc(reference, todo.id), {
-      title: todo.title, done: todo.done, updatedAt: Date.now(),
+      title: todo.title, done: todo.done, priority: todo.priority || "normal",
+      dueDate: todo.dueDate || "", category: todo.category || "", updatedAt: Date.now(),
     }));
     existing.docs.filter((entry) => !keep.has(entry.id)).forEach((entry) => batch.delete(entry.ref));
     if (snapshot.length || existing.size) await batch.commit();
@@ -290,7 +300,19 @@ dateLabel.textContent = new Intl.DateTimeFormat("zh-TW", {
 
 function render() {
   list.replaceChildren();
-  for (const todo of todos) {
+  const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  const query = searchInput.value.trim().toLocaleLowerCase();
+  let visibleTodos = todos.filter((todo) => {
+    if (activeFilter === "active" && todo.done) return false;
+    if (activeFilter === "done" && !todo.done) return false;
+    if (activeFilter === "today" && (todo.done || todo.dueDate !== today)) return false;
+    if (activeFilter === "overdue" && (todo.done || !todo.dueDate || todo.dueDate >= today)) return false;
+    return !query || `${todo.title} ${todo.category || ""}`.toLocaleLowerCase().includes(query);
+  });
+  const priorityRank = {high: 0, normal: 1, low: 2};
+  if (sortInput.value === "due") visibleTodos.sort((a, b) => (a.dueDate || "9999").localeCompare(b.dueDate || "9999"));
+  if (sortInput.value === "priority") visibleTodos.sort((a, b) => priorityRank[a.priority] - priorityRank[b.priority]);
+  for (const todo of visibleTodos) {
     const item = document.createElement("li");
     item.className = `todo-item${todo.done ? " is-done" : ""}`;
     const checkbox = document.createElement("input");
@@ -323,6 +345,28 @@ function render() {
           render();
         }
       });
+      const editPriority = document.createElement("select");
+      editPriority.className = "todo-edit-option";
+      editPriority.setAttribute("aria-label", "優先度");
+      [["normal", "一般"], ["high", "重要"], ["low", "有空再做"]].forEach(([value, label]) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = label;
+        editPriority.append(option);
+      });
+      editPriority.value = todo.priority || "normal";
+      const editDueDate = document.createElement("input");
+      editDueDate.className = "todo-edit-option";
+      editDueDate.type = "date";
+      editDueDate.value = todo.dueDate || "";
+      editDueDate.setAttribute("aria-label", "截止日期");
+      const editCategory = document.createElement("input");
+      editCategory.className = "todo-edit-option";
+      editCategory.type = "text";
+      editCategory.maxLength = 30;
+      editCategory.placeholder = "分類";
+      editCategory.value = todo.category || "";
+      editCategory.setAttribute("aria-label", "分類");
       const save = document.createElement("button");
       save.className = "save-button";
       save.type = "submit";
@@ -345,18 +389,44 @@ function render() {
           return;
         }
         const currentTodo = todos.find((entry) => entry.id === todo.id);
-        if (currentTodo) currentTodo.title = title;
+        if (currentTodo) {
+          currentTodo.title = title;
+          currentTodo.priority = editPriority.value;
+          currentTodo.dueDate = editDueDate.value;
+          currentTodo.category = editCategory.value.trim();
+        }
         editingTodoId = null;
         editingDraft = "";
         void persistTodos();
         render();
       });
-      editForm.append(editInput, save, cancel);
+      editForm.append(editInput, editPriority, editDueDate, editCategory, save, cancel);
       item.append(checkbox, editForm);
     } else {
       const title = document.createElement("span");
       title.className = "todo-title";
       title.textContent = todo.title;
+      const details = document.createElement("div");
+      details.className = "todo-details";
+      const priority = document.createElement("span");
+      priority.className = `priority-badge priority-${todo.priority || "normal"}`;
+      priority.textContent = todo.priority === "high" ? "重要" : todo.priority === "low" ? "有空再做" : "一般";
+      details.append(priority);
+      if (todo.dueDate) {
+        const dueDate = document.createElement("span");
+        dueDate.className = `due-date${!todo.done && todo.dueDate < today ? " is-overdue" : ""}`;
+        dueDate.textContent = `到期 ${todo.dueDate}`;
+        details.append(dueDate);
+      }
+      if (todo.category) {
+        const category = document.createElement("span");
+        category.className = "category-badge";
+        category.textContent = todo.category;
+        details.append(category);
+      }
+      const content = document.createElement("div");
+      content.className = "todo-content";
+      content.append(title, details);
       const actions = document.createElement("div");
       actions.className = "todo-actions";
       const edit = document.createElement("button");
@@ -383,14 +453,15 @@ function render() {
         render();
       });
       actions.append(edit, remove);
-      item.append(checkbox, title, actions);
+      item.append(checkbox, content, actions);
     }
     list.append(item);
   }
   const remaining = todos.filter((todo) => !todo.done).length;
-  count.textContent = `${remaining} 件待辦`;
-  emptyState.hidden = todos.length !== 0;
-  list.hidden = todos.length === 0;
+  count.textContent = `${remaining} 件待辦${visibleTodos.length !== todos.length ? ` · 顯示 ${visibleTodos.length} 件` : ""}`;
+  emptyState.hidden = visibleTodos.length !== 0;
+  emptyState.querySelector("p").textContent = todos.length && !visibleTodos.length ? "沒有符合條件的待辦" : "清單還是空的";
+  list.hidden = visibleTodos.length === 0;
   clearDoneButton.hidden = !todos.some((todo) => todo.done);
 }
 
@@ -402,10 +473,13 @@ form.addEventListener("submit", (event) => {
     input.focus();
     return;
   }
-  todos.unshift({id: crypto.randomUUID(), title, done: false});
+  todos.unshift({id: crypto.randomUUID(), title, done: false, priority: priorityInput.value, dueDate: dueDateInput.value, category: categoryInput.value.trim()});
   void persistTodos();
   render();
   input.value = "";
+  priorityInput.value = "normal";
+  dueDateInput.value = "";
+  categoryInput.value = "";
   input.focus();
 });
 
@@ -413,6 +487,29 @@ clearDoneButton.addEventListener("click", () => {
   todos = todos.filter((todo) => !todo.done);
   void persistTodos();
   render();
+});
+
+searchInput.addEventListener("input", render);
+sortInput.addEventListener("change", render);
+filterButtons.forEach((button) => button.addEventListener("click", () => {
+  activeFilter = button.dataset.filter;
+  filterButtons.forEach((entry) => {
+    const active = entry === button;
+    entry.classList.toggle("is-active", active);
+    entry.setAttribute("aria-pressed", String(active));
+  });
+  render();
+}));
+
+exportButton.addEventListener("click", () => {
+  const backup = new Blob([JSON.stringify({exportedAt: new Date().toISOString(), todos}, null, 2)], {type: "application/json"});
+  const url = URL.createObjectURL(backup);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `my-little-day-${new Date().toISOString().slice(0, 10)}.json`;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  message.textContent = "已下載待辦備份檔。";
 });
 
 signInButtons.forEach((button) => {
@@ -504,7 +601,10 @@ assistantForm.addEventListener("submit", async (event) => {
   assistantStatus.textContent = "正在整理清單……";
   try {
     const chat = await getAssistantChat();
-    const taskContext = todos.slice(0, 100).map(({title, done}) => ({title, status: done ? "已完成" : "未完成"}));
+    const taskContext = todos.slice(0, 100).map(({title, done, priority, dueDate, category}) => ({
+      title, status: done ? "已完成" : "未完成", priority: priority || "normal",
+      dueDate: dueDate || null, category: category || null,
+    }));
     const omittedCount = Math.max(0, todos.length - taskContext.length);
     const prompt = `目前待辦清單（JSON 資料；最多提供前 100 項，另有 ${omittedCount} 項未提供）：\n${JSON.stringify(taskContext)}\n\n使用者問題：${question}`;
     const result = await chat.sendMessage(prompt);

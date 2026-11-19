@@ -1,6 +1,13 @@
-# 我的待辦清單
+# 個人任務管理系統
 
-待辦清單可部署到 GitHub Pages。未登入時，待辦保存在目前瀏覽器；使用 Google 或 LINE 登入後，待辦清單會透過 Firebase Authentication 與 Cloud Firestore 同步。
+個人任務管理系統可部署到 GitHub Pages。未登入時，任務保存在目前瀏覽器；使用 Google 或 LINE 登入後，任務會透過 Firebase Authentication 與 Cloud Firestore 同步。
+
+## 任務功能
+
+- 建立任務時設定優先度、截止日期與分類；可隨時編輯任務標題、標記完成或刪除。
+- 依全部、未完成、今天到期、已逾期或已完成篩選；可搜尋標題與分類，並按新增順序、截止日期或優先度排序。
+- 逾期任務會標示提醒；可一次清除已完成任務，或下載 JSON 備份。
+- 舊版任務會自動以一般優先度、無截止日期及無分類顯示；本機與雲端登入都支援這些任務欄位。
 
 線上 Firebase 專案為 **Daymark**（專案 ID：`daymark-ef86c`）。
 
@@ -12,7 +19,7 @@
 2. 在 **Authentication → Sign-in method** 啟用 **Google**。
 3. 在 LINE Developers 建立 **LINE Login** Channel，將 Firebase 回呼網址 `https://<authDomain>/__/auth/handler` 加入 Channel 的 Callback URL。先在 Firebase Authentication 啟用 Identity Platform，再新增 **OpenID Connect** 供應商：Provider ID 設為 `oidc.line`、Issuer 設為 `https://access.line.me`，並填入 LINE Channel ID 與 Channel secret。LINE Channel secret 只填在 Firebase Console，不要放進網站程式或 GitHub Variables。
    - Spark 維持免費且不需綁信用卡；Identity Platform 的 OIDC 每日上限為 2 位活躍使用者。若需更高用量，請先確認 Blaze 方案費率。
-4. 建立 Cloud Firestore database，將本目錄的 `firestore.rules` 發佈為 Firestore Rules。
+4. 建立 Cloud Firestore database，將本目錄的 `firestore.rules` 發佈為 Firestore Rules。任務資料允許欄位為標題、完成狀態、優先度、截止日期、分類與更新時間；新增欄位後請重新發布規則。
 5. 本機測試：複製 `firebase-config.example.json` 為未納入 Git 的 `firebase-config.json`，再填入 Firebase Web App 設定。GitHub Pages 部署則在儲存庫 **Settings → Secrets and variables → Actions → Variables** 新增以下 Repository variables（不是 Secrets）：
    - `FIREBASE_API_KEY`
    - `FIREBASE_AUTH_DOMAIN`

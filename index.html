@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f5f7fb">
-  <meta name="description" content="簡單、可在瀏覽器本機保存的待辦清單。">
+  <meta name="description" content="可管理優先度、截止日期與分類，並支援本機保存和雲端同步的個人任務清單。">
   <title>待辦清單｜我的小日常</title>
-  <link rel="stylesheet" href="./styles.css?v=20261113-2">
-  <script type="module" src="./app.js?v=20261113-2"></script>
+  <link rel="stylesheet" href="./styles.css?v=20261119-1">
+  <script type="module" src="./app.js?v=20261119-1"></script>
 </head>
 <body>
   <main class="shell">
@@ -54,6 +54,42 @@
         <button type="submit" class="add-button"><span aria-hidden="true">＋</span> 新增</button>
       </form>
 
+      <div class="task-options" aria-label="待辦事項選項">
+        <label>優先度
+          <select id="new-priority" name="priority">
+            <option value="normal">一般</option>
+            <option value="high">重要</option>
+            <option value="low">有空再做</option>
+          </select>
+        </label>
+        <label>截止日期
+          <input id="new-due-date" name="dueDate" type="date">
+        </label>
+        <label>分類
+          <input id="new-category" name="category" maxlength="30" placeholder="例如：工作">
+        </label>
+      </div>
+
+      <div class="task-toolbar">
+        <label class="search-field"><span class="visually-hidden">搜尋待辦</span>
+          <input id="task-search" type="search" placeholder="搜尋待辦…" autocomplete="off">
+        </label>
+        <label class="sort-field"><span class="visually-hidden">排序方式</span>
+          <select id="task-sort">
+            <option value="created">新增順序</option>
+            <option value="due">截止日期</option>
+            <option value="priority">優先度</option>
+          </select>
+        </label>
+      </div>
+      <nav class="task-filters" aria-label="待辦篩選">
+        <button type="button" class="filter-button is-active" data-filter="all" aria-pressed="true">全部</button>
+        <button type="button" class="filter-button" data-filter="active" aria-pressed="false">未完成</button>
+        <button type="button" class="filter-button" data-filter="today" aria-pressed="false">今天到期</button>
+        <button type="button" class="filter-button" data-filter="overdue" aria-pressed="false">已逾期</button>
+        <button type="button" class="filter-button" data-filter="done" aria-pressed="false">已完成</button>
+      </nav>
+
       <p id="message" class="message" role="status" aria-live="polite"></p>
       <ul id="items" class="items" aria-label="待辦事項"></ul>
       <div id="empty-state" class="empty-state" hidden>
@@ -64,7 +100,10 @@
 
       <footer class="board-footer">
         <span>✦ 每完成一件，都是一點點進步</span>
-        <button id="clear-done" class="clear-button" type="button" hidden>清除已完成</button>
+        <div class="footer-actions">
+          <button id="export-tasks" class="clear-button" type="button">匯出備份</button>
+          <button id="clear-done" class="clear-button" type="button" hidden>清除已完成</button>
+        </div>
       </footer>
     </section>
 

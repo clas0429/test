@@ -5,11 +5,16 @@ service cloud.firestore {
       allow read, delete: if request.auth != null && request.auth.uid == userId;
       allow create, update: if request.auth != null
         && request.auth.uid == userId
-        && request.resource.data.keys().hasOnly(['title', 'done', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['title', 'done', 'priority', 'dueDate', 'category', 'updatedAt'])
         && request.resource.data.title is string
         && request.resource.data.title.size() > 0
         && request.resource.data.title.size() <= 200
         && request.resource.data.done is bool
+        && request.resource.data.priority in ['high', 'normal', 'low']
+        && request.resource.data.dueDate is string
+        && request.resource.data.dueDate.size() <= 10
+        && request.resource.data.category is string
+        && request.resource.data.category.size() <= 30
         && request.resource.data.updatedAt is int;
     }
   }
