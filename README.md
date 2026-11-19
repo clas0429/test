@@ -1,6 +1,6 @@
 # 個人任務管理系統
 
-個人任務管理系統可部署到 GitHub Pages。未登入時，任務保存在目前瀏覽器；使用 Google 或 LINE 登入後，任務會透過 Firebase Authentication 與 Cloud Firestore 同步。
+個人任務與行程管理系統可部署到 GitHub Pages。未登入時，資料保存在目前瀏覽器；使用 Google 或 LINE 登入後，待辦與行程會透過 Firebase Authentication 與 Cloud Firestore 同步。
 
 ## 任務功能
 
@@ -8,6 +8,13 @@
 - 依全部、未完成、今天到期、已逾期或已完成篩選；可搜尋標題與分類，並按新增順序、截止日期或優先度排序。
 - 逾期任務會標示提醒；可一次清除已完成任務，或下載 JSON 備份。
 - 舊版任務會自動以一般優先度、無截止日期及無分類顯示；本機與雲端登入都支援這些任務欄位。
+
+## 行程月曆
+
+- 以月曆瀏覽月份，點選日期查看當天行程，並可新增、編輯或刪除行程。
+- 每筆行程可記錄名稱、日期、開始與結束時間、地點及備註；沒有開始時間時會顯示為全天行程。
+- 未登入時，行程保存在目前瀏覽器；登入後會同步至 `users/{uid}/events`。第一次登入若雲端沒有行程，會匯入本機行程；若雲端已有行程，則以雲端資料為準。
+- 「匯出備份」會同時下載待辦與行程 JSON。
 
 線上 Firebase 專案為 **Daymark**（專案 ID：`daymark-ef86c`）。
 
@@ -19,7 +26,7 @@
 2. 在 **Authentication → Sign-in method** 啟用 **Google**。
 3. 在 LINE Developers 建立 **LINE Login** Channel，將 Firebase 回呼網址 `https://<authDomain>/__/auth/handler` 加入 Channel 的 Callback URL。先在 Firebase Authentication 啟用 Identity Platform，再新增 **OpenID Connect** 供應商：Provider ID 設為 `oidc.line`、Issuer 設為 `https://access.line.me`，並填入 LINE Channel ID 與 Channel secret。LINE Channel secret 只填在 Firebase Console，不要放進網站程式或 GitHub Variables。
    - Spark 維持免費且不需綁信用卡；Identity Platform 的 OIDC 每日上限為 2 位活躍使用者。若需更高用量，請先確認 Blaze 方案費率。
-4. 建立 Cloud Firestore database，將本目錄的 `firestore.rules` 發佈為 Firestore Rules。任務資料允許欄位為標題、完成狀態、優先度、截止日期、分類與更新時間；新增欄位後請重新發布規則。
+4. 建立 Cloud Firestore database，將本目錄的 `firestore.rules` 發佈為 Firestore Rules。規則允許 `todos` 清單欄位，以及 `events` 行程的名稱、日期、時間、地點、備註與更新時間；新增欄位後請重新發布規則。
 5. 本機測試：複製 `firebase-config.example.json` 為未納入 Git 的 `firebase-config.json`，再填入 Firebase Web App 設定。GitHub Pages 部署則在儲存庫 **Settings → Secrets and variables → Actions → Variables** 新增以下 Repository variables（不是 Secrets）：
    - `FIREBASE_API_KEY`
    - `FIREBASE_AUTH_DOMAIN`
@@ -28,7 +35,7 @@
    - `FIREBASE_APPCHECK_SITE_KEY`
 6. 在 Firebase 的 **Authentication → Settings → Authorized domains** 加入 `localhost` 和 `clas0429.github.io`。將 `firestore.rules` 發佈至 Firestore Rules。設定上述 GitHub Variables 後，將變更推送至 `main`，等待 `Deploy to GitHub Pages` 成功，再到網站測試登入。
 
-未登入時沿用本機清單。第一次登入若該帳號的雲端清單是空的，會將本機清單匯入該帳號；若雲端已有清單，雲端資料優先，本機舊清單不會覆蓋雲端資料。Firebase Auth 使用彈出式 Google 或 LINE 登入；請在 HTTPS 網站或 `localhost` 使用，不支援直接用 `file://` 開啟登入。本機設定檔缺少時，網站仍可用本機待辦，但登入功能無法連線；GitHub Variables 缺少時部署工作會明確失敗，避免發布一個看似已更新、實際沒有登入設定的網站。
+未登入時沿用本機待辦與行程。第一次登入若該帳號的雲端待辦或行程集合為空，會匯入該項本機資料；若雲端已有資料，該集合以雲端資料為準，本機資料不會覆蓋雲端資料。Firebase Auth 使用彈出式 Google 或 LINE 登入；請在 HTTPS 網站或 `localhost` 使用，不支援直接用 `file://` 開啟登入。本機設定檔缺少時，網站仍可用本機待辦與行程，但登入功能無法連線；GitHub Variables 缺少時部署工作會明確失敗，避免發布一個看似已更新、實際沒有登入設定的網站。
 
 登入後可在帳號區選擇「連結 Google」或「連結 LINE」，將兩種方式綁定到同一個 Firebase 帳號，共用同一份雲端清單。若登入時提示電子郵件已使用另一種方式，先用原本方式登入，再從帳號區連結另一種方式。
 
@@ -58,6 +65,7 @@ python -m http.server 8000
 
 ## 資料注意事項
 
-- 未登入時資料只在同一個瀏覽器、同一個網站來源內保存；登入後待辦同步至 Firestore。
+- 未登入時待辦與行程只在同一個瀏覽器、同一個網站來源內保存；登入後待辦與行程同步至 Firestore。
 - 清除瀏覽器網站資料，或使用無痕模式後關閉視窗，可能使待辦資料消失。
 - Firebase Web 設定不等同伺服器密鑰；仍須正確發佈 `firestore.rules`，不可使用允許所有人讀寫的測試規則。
+

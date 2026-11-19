@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f5f7fb">
-  <meta name="description" content="可管理優先度、截止日期與分類，並支援本機保存和雲端同步的個人任務清單。">
-  <title>待辦清單｜我的小日常</title>
-  <link rel="stylesheet" href="./styles.css?v=20261119-1">
-  <script type="module" src="./app.js?v=20261119-1"></script>
+  <meta name="description" content="用月曆管理行程、用待辦清單安排每天的小事，支援本機保存與 Firebase 雲端同步。">
+  <title>行程月曆與待辦清單｜我的小日常</title>
+  <link rel="stylesheet" href="./styles.css?v=20261119-2">
+  <script type="module" src="./app.js?v=20261119-2"></script>
 </head>
 <body>
   <main class="shell">
@@ -107,7 +107,73 @@
       </footer>
     </section>
 
-    <p class="privacy-note"><span aria-hidden="true">▣</span> 登入後清單會同步至 Firebase；未登入時只保存在這個瀏覽器。</p>
+    <section class="calendar-board" aria-labelledby="calendar-title">
+      <header class="calendar-heading">
+        <div>
+          <p class="calendar-eyebrow">MAKE ROOM FOR YOUR DAY</p>
+          <h2 id="calendar-title">行程月曆</h2>
+          <p class="calendar-intro">選擇日期，安排接下來的重要時刻。</p>
+        </div>
+        <button id="calendar-new-event" class="calendar-add-button" type="button">＋ 新增行程</button>
+      </header>
+
+      <div class="calendar-navigation" aria-label="切換月份">
+        <div class="calendar-month-controls">
+          <button id="calendar-prev" class="calendar-nav-button" type="button">上月</button>
+          <h3 id="calendar-month-label" aria-live="polite"></h3>
+          <button id="calendar-next" class="calendar-nav-button" type="button">下月</button>
+        </div>
+        <button id="calendar-today" class="calendar-today-button" type="button">今天</button>
+      </div>
+
+      <div class="calendar-weekdays" aria-hidden="true">
+        <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+      </div>
+      <div id="calendar-grid" class="calendar-grid" role="group" aria-label="月曆日期"></div>
+
+      <section class="calendar-day-panel" aria-labelledby="selected-date-label">
+        <div class="calendar-day-heading">
+          <div>
+            <p class="calendar-eyebrow">YOUR PLANS</p>
+            <h3 id="selected-date-label"></h3>
+          </div>
+          <span id="selected-date-count" class="calendar-event-count"></span>
+        </div>
+        <ul id="event-list" class="event-list" aria-label="選取日期的行程"></ul>
+        <div id="events-empty" class="events-empty" hidden>這天還沒有安排，留一點空間給重要的事。</div>
+
+        <form id="event-form" class="event-form">
+          <h4 id="event-form-title">安排一個行程</h4>
+          <div class="event-form-grid">
+            <label class="event-field event-title-field">行程名稱
+              <input id="event-title" maxlength="120" placeholder="例如：和朋友吃晚餐" required autocomplete="off">
+            </label>
+            <label class="event-field">日期
+              <input id="event-date" type="date" required>
+            </label>
+            <label class="event-field">開始時間（選填）
+              <input id="event-start-time" type="time">
+            </label>
+            <label class="event-field">結束時間（選填）
+              <input id="event-end-time" type="time">
+            </label>
+            <label class="event-field event-location-field">地點（選填）
+              <input id="event-location" maxlength="100" placeholder="例如：市政府站附近">
+            </label>
+            <label class="event-field event-notes-field">備註（選填）
+              <textarea id="event-notes" maxlength="500" rows="2" placeholder="需要記住的小細節"></textarea>
+            </label>
+          </div>
+          <p id="event-message" class="event-message" role="status" aria-live="polite"></p>
+          <div class="event-form-actions">
+            <button id="event-cancel-edit" class="event-cancel-button" type="button" hidden>取消編輯</button>
+            <button id="event-submit" class="calendar-add-button" type="submit">儲存行程</button>
+          </div>
+        </form>
+      </section>
+    </section>
+
+    <p class="privacy-note"><span aria-hidden="true">▣</span> 登入後待辦與行程會同步至 Firebase；未登入時只保存在這個瀏覽器。</p>
   </main>
 
   <button id="assistant-toggle" class="assistant-toggle" type="button" aria-expanded="false" aria-controls="assistant-panel">
@@ -134,3 +200,4 @@
   </section>
 </body>
 </html>
+
